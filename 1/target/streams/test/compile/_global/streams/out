@@ -1,0 +1,4 @@
+[0m[[0m[31merror[0m] [0m[0m/Users/stavsheizaf/GitRepos/ScalaCourse/1/src/test/scala/TaskManagerSpec.scala:10:19: value should is not a member of Unit[0m
+[0m[[0m[31merror[0m] [0m[0m    tasksDueToday should have length 0[0m
+[0m[[0m[31merror[0m] [0m[0m                  ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
