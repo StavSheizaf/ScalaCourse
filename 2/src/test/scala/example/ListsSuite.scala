@@ -21,7 +21,7 @@ class ListsSuite extends munit.FunSuite:
   }
 
   test("one plus one is three (0pts)?") {
-    assert(1 + 1 == 3) // This assertion fails! Go ahead and fix it.
+    assert(1 + 1 == 2) // This assertion fails! Go ahead and fix it.
   }
 
   /**
@@ -57,7 +57,7 @@ class ListsSuite extends munit.FunSuite:
    * when writing tests.
    */
   test("details why one plus one is not three (0pts)") {
-    assertEquals(1 + 1, 3) // Fix me, please!
+    assertEquals(1 + 1, 2) // Fix me, please!
   }
 
   /**
@@ -102,9 +102,34 @@ class ListsSuite extends munit.FunSuite:
     assert(sum(List(1,2,0)) == 3)
   }
 
+  test(name = "sum of negatives") {
+    assert(sum(List(-1,-2,3)) == 0)
+  }
+
+  test(name = "sum of empty list") {
+    assert(sum(List()) == 0)
+  }
+
   test("max of a few numbers (10pts)") {
     assert(max(List(3, 7, 2)) == 7)
   }
+
+  test(name = "max of same numbers") {
+    assert(max(List(3,3,3,2)) == 3)
+  }
+
+  def emptyListError(x: List[Int]): Int =
+    if x.isEmpty then throw IllegalArgumentException("zero is not allowed")
+    else x.head
+
+  test(name = "max of empty list") {
+    try
+      emptyListError(List())
+      fail("No exception has been thrown")
+    catch
+      case e: IllegalArgumentException => ()
+  }
+
 
 
 
