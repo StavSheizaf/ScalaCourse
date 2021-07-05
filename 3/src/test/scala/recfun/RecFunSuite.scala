@@ -21,6 +21,10 @@ class RecFunSuite extends munit.FunSuite:
     assert(!balance("())(".toList))
   }
 
+  test("balance: starting bad, ending good") {
+    assert(!balance(")()(".toList))
+  }
+
   // ------ countChange tests -------------------------------------------------
 
   test("countChange: example given in instructions") {
@@ -39,7 +43,23 @@ class RecFunSuite extends munit.FunSuite:
     assertEquals(countChange(300,List(500,5,50,100,20,200,10)), 1022)
   }
 
+  test("countChange: no coins") {
+    assertEquals(countChange(300,List()), 0)
+  }
+
+  test("countChange: no money") {
+  assertEquals(countChange(0,List(500,5,50,100,20,200,10)), 1)
+  }
+
+  test("countChange: no coins, no money") {
+    assertEquals(countChange(0,List()), 1)
+  }
+
   // ------ pascal tests ------------------------------------------------------
+
+  test("pascal: col=0,row=0") {
+  assertEquals(pascal(0, 0), 1)
+  }
 
   test("pascal: col=0,row=2") {
     assertEquals(pascal(0, 2), 1)
