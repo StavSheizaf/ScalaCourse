@@ -40,20 +40,13 @@ abstract class TweetSet extends TweetSetInterface:
    * Question: Can we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def filter(p: Tweet => Boolean): TweetSet = ???
+  def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, new Empty())
 
   /**
    * This is a helper method for `filter` that propagetes the accumulated tweets.
    */
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet
 
-  /**
-   * Returns a new `TweetSet` that is the union of `TweetSet`s `this` and `that`.
-   *
-   * Question: Should we implment this method here, or should it remain abstract
-   * and be implemented in the subclasses?
-   */
-  def union(that: TweetSet): TweetSet = ???
 
   /**
    * Returns the tweet from this set which has the greatest retweet count.
@@ -64,7 +57,7 @@ abstract class TweetSet extends TweetSetInterface:
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def mostRetweeted: Tweet = ???
+  def mostRetweeted: Tweet
 
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
@@ -75,7 +68,10 @@ abstract class TweetSet extends TweetSetInterface:
    * Question: Should we implement this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-  def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList
+
+
+  def union(that: TweetSet): TweetSet
 
   /**
    * The following methods are already implemented
@@ -105,7 +101,38 @@ abstract class TweetSet extends TweetSetInterface:
   def foreach(f: Tweet => Unit): Unit
 
 class Empty extends TweetSet:
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
+
+  /**
+   * Returns a new `TweetSet` that is the union of `TweetSet`s `this` and `that`.
+   *
+   * Question: Should we implment this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def union(that: TweetSet): TweetSet = that
+
+  /**
+   * Returns the tweet from this set which has the greatest retweet count.
+   *
+   * Calling `mostRetweeted` on an empty set should throw an exception of
+   * type `java.util.NoSuchElementException`.
+   *
+   * Question: Should we implment this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def mostRetweeted: Tweet = throw new NoSuchElementException()
+
+  /**
+   * Returns a list containing all tweets of this set, sorted by retweet count
+   * in descending order. In other words, the head of the resulting list should
+   * have the highest retweet count.
+   *
+   * Hint: the method `remove` on TweetSet will be very useful.
+   * Question: Should we implement this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def descendingByRetweet: TweetList = Nil
+
 
   /**
    * The following methods are already implemented
@@ -121,7 +148,74 @@ class Empty extends TweetSet:
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet:
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = {
+    val newAcc = left.filterAcc(p, right.filterAcc(p, acc))
+
+    if p(elem) then newAcc.incl(elem) else newAcc
+  }
+
+  /**
+   * Returns a new `TweetSet` that is the union of `TweetSet`s `this` and `that`.
+   *
+   * Question: Should we implment this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def union(that: TweetSet): TweetSet = {
+    var acc: TweetSet = this
+    that.foreach(tweet => acc = acc.incl(tweet))
+
+    acc
+  }
+
+  /**
+   * Returns the tweet from this set which has the greatest retweet count.
+   *
+   * Calling `mostRetweeted` on an empty set should throw an exception of
+   * type `java.util.NoSuchElementException`.
+   *
+   * Question: Should we implment this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def mostRetweeted: Tweet =
+    var maxRetweet: Tweet = elem
+
+    foreach(tweet => if maxRetweet.retweets < tweet.retweets then maxRetweet = tweet)
+
+    maxRetweet
+
+  /**
+   * Returns a list containing all tweets of this set, sorted by retweet count
+   * in descending order. In other words, the head of the resulting list should
+   * have the highest retweet count.
+   *
+   * Hint: the method `remove` on TweetSet will be very useful.
+   * Question: Should we implement this method here, or should it remain abstract
+   * and be implemented in the subclasses?
+   */
+  def descendingByRetweet: TweetList =
+    var tweetList: TweetList = new TweetList {
+      override def head: Tweet = mostRetweeted
+
+      override def tail: TweetList = Nil
+
+      override def isEmpty: Boolean = false
+    }
+
+    try {
+      while true do
+        tweetList = new TweetList {
+          override def head: Tweet = mostRetweeted
+
+          override def tail: TweetList = tweetList
+
+          override def isEmpty: Boolean = false
+        }
+    } catch {
+      case e: NoSuchElementException => {}
+    }
+
+    tweetList
+
 
 
   /**
@@ -178,14 +272,18 @@ object GoogleVsApple:
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
 
-  lazy val googleTweets: TweetSet = ???
-  lazy val appleTweets: TweetSet = ???
+  val tweets = TweetReader.allTweets
+
+  def listContains(list: List[String]): TweetSet = tweets.filter(tweet => list.exists(keyword => tweet.text.indexOf(keyword) != -1))
+
+  lazy val googleTweets: TweetSet = listContains(google)
+  lazy val appleTweets: TweetSet = listContains(apple)
 
   /**
    * A list of all tweets mentioning a keyword from either apple or google,
    * sorted by the number of retweets.
    */
-  lazy val trending: TweetList = ???
+  lazy val trending: TweetList = googleTweets.union(appleTweets).descendingByRetweet
 
 object Main extends App:
   // Print the trending tweets
