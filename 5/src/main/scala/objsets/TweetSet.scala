@@ -193,28 +193,9 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet:
    * and be implemented in the subclasses?
    */
   def descendingByRetweet: TweetList =
-    var tweetList: TweetList = new TweetList {
-      override def head: Tweet = mostRetweeted
+      val mostret = mostRetweeted
+      new Cons(mostret,remove(mostret).descendingByRetweet)
 
-      override def tail: TweetList = Nil
-
-      override def isEmpty: Boolean = false
-    }
-
-    try {
-      while true do
-        tweetList = new TweetList {
-          override def head: Tweet = mostRetweeted
-
-          override def tail: TweetList = tweetList
-
-          override def isEmpty: Boolean = false
-        }
-    } catch {
-      case e: NoSuchElementException => {}
-    }
-
-    tweetList
 
 
 
