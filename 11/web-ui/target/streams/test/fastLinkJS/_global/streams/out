@@ -1,0 +1,22 @@
+[0m[[0m[0minfo[0m] [0m[0mFast optimizing /Users/stavsheizaf/GitRepos/ScalaCourse/11/web-ui/target/scala-2.13/webui-test-fastopt[0m
+[0m[[0m[0mdebug[0m] [0m[0mLinker: Compute reachability: 51571 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mLinker: Assemble LinkedClasses: 19943 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mLinker: 94726 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mOptimizer: Batch mode: false[0m
+[0m[[0m[0mdebug[0m] [0m[0mOptimizer: Incremental part: 4645 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mOptimizer: Optimizing 151 methods.[0m
+[0m[[0m[0mdebug[0m] [0m[0mOptimizer: Optimizer part: 7129 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mOptimizer: 15341 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mRefiner: Compute reachability: 35954 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mRefiner: Assemble LinkedClasses: 2779 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mRefiner: 40144 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mModule Splitter: Calculate Dependency Info: 189 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mModule Splitter: Analyze Modules: 26 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mModule Splitter: Assemble Modules: 267 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mModule Splitter: 536 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mEmitter: Generate Classes: 19245 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mEmitter: Write trees: 1393 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mEmitter: Class tree cache stats: reused: 727 -- invalidated: 0[0m
+[0m[[0m[0mdebug[0m] [0m[0mEmitter: Method tree cache stats: reused: 2948 -- invalidated: 111[0m
+[0m[[0m[0mdebug[0m] [0m[0mEmitter: 24696 us[0m
+[0m[[0m[0mdebug[0m] [0m[0mBasicBackend: Write result: 102182 us[0m
