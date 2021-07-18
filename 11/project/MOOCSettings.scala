@@ -29,7 +29,6 @@ object MOOCSettings extends AutoPlugin {
     val CourseraId = ch.epfl.lamp.CourseraId
     val datasetUrl = settingKey[String]("URL of the dataset used for testing")
     val downloadDataset = taskKey[File]("Download the dataset required for the assignment")
-    val assignmentVersion = settingKey[String]("Hash string indicating the version of the assignment")
   }
 
   import autoImport._

@@ -4,17 +4,18 @@ import scala.scalajs.js
 import org.scalajs.dom
 import org.scalajs.dom.html
 import dom.document
-import Expr.*
 
-object CalculatorUI:
-  def main(args: Array[String]): Unit =
-    try
+object CalculatorUI {
+  def main(args: Array[String]): Unit = {
+    try {
       setupTweetMeasurer()
       setup2ndOrderPolynomial()
       setupCalculator()
-    catch
+    } catch {
       case th: Throwable =>
         th.printStackTrace()
+    }
+  }
 
   // Helpers
 
@@ -22,48 +23,53 @@ object CalculatorUI:
     document.getElementById(id).asInstanceOf[A]
 
   def elementValueSignal(element: html.Element,
-      getValue: () => String): Signal[String] =
+      getValue: () => String): Signal[String] = {
     var prevVal = getValue()
-    val value = Signal.Var(prevVal)
+    val value = new Var(prevVal)
     val onChange = { (event: dom.Event) =>
       // Reconstruct manually the optimization at the root of the graph
       val newVal = getValue()
-      if newVal != prevVal then
+      if (newVal != prevVal) {
         prevVal = newVal
         value() = newVal
+      }
     }
     element.addEventListener("change", onChange)
     element.addEventListener("keypress", onChange)
     element.addEventListener("keyup", onChange)
     value
+  }
 
   def inputValueSignal(input: html.Input): Signal[String] =
     elementValueSignal(input, () => input.value)
 
-  def textAreaValueSignal(textAreaID: String): Signal[String] =
+  def textAreaValueSignal(textAreaID: String): Signal[String] = {
     val textArea = elementById[html.TextArea](textAreaID)
     elementValueSignal(textArea, () => textArea.value)
+  }
 
   private lazy val ClearCssClassRegExp =
-    js.RegExp(raw"""(?:^|\s)has-error(?!\S)""", "g")
+    new js.RegExp(raw"""(?:^|\s)has-error(?!\S)""", "g")
 
-  def doubleValueOfInput(input: html.Input): Signal[Double] =
+  def doubleValueOfInput(input: html.Input): Signal[Double] = {
     val text = inputValueSignal(input)
     val parent = input.parentElement
     Signal {
-      import js.JSStringOps.*
+      import js.JSStringOps._
       parent.className = parent.className.jsReplace(ClearCssClassRegExp, "")
-      try
+      try {
         text().toDouble
-      catch
+      } catch {
         case e: NumberFormatException =>
           parent.className += " has-error"
           Double.NaN
+      }
     }
+  }
 
   // TWEET LENGTH
 
-  def setupTweetMeasurer(): Unit =
+  def setupTweetMeasurer(): Unit = {
     val tweetText = textAreaValueSignal("tweettext")
     val remainingCharsArea =
       document.getElementById("tweetremainingchars").asInstanceOf[html.Span]
@@ -77,11 +83,12 @@ object CalculatorUI:
     Signal {
       remainingCharsArea.style.color = color()
     }
+  }
 
   // 2ND ORDER POLYNOMIAL
 
-  def setup2ndOrderPolynomial(): Unit =
-    val ids = List("polyroota", "polyrootb", "polyrootc")
+  def setup2ndOrderPolynomial(): Unit = {
+    val ids = List("poly  roota", "polyrootb", "polyrootc")
     val inputs = ids.map(id => elementById[html.Input](id))
     val doubleValues = inputs.map(doubleValueOfInput)
     val List(a, b, c) = doubleValues
@@ -97,10 +104,11 @@ object CalculatorUI:
     Signal {
       solutionsArea.textContent = solutions().toString
     }
+  }
 
   // CALCULATOR
 
-  def setupCalculator(): Unit =
+  def setupCalculator(): Unit = {
     val names = (0 until 10).map(i => ('a' + i).toChar.toString)
 
     val inputs = names.map(name => elementById[html.Input]("calculatorexpr" + name))
@@ -112,7 +120,7 @@ object CalculatorUI:
 
     assert(namedValues.keySet == namedExpressions.keySet)
 
-    for (name, valueSignal) <- namedValues do
+    for ((name, valueSignal) <- namedValues) {
       val span = elementById[html.Span]("calculatorval" + name)
       var dehighlightTimeout: Option[js.timers.SetTimeoutHandle] = None
       Signal {
@@ -126,43 +134,54 @@ object CalculatorUI:
           span.style.backgroundColor = "white"
         })
       }
+    }
+  }
 
-  def exprOfInput(input: html.Input): Signal[Expr] =
+  def exprOfInput(input: html.Input): Signal[Expr] = {
     val text = inputValueSignal(input)
     val parent = input.parentElement
     Signal {
-      import js.JSStringOps.*
+      import js.JSStringOps._
       parent.className = parent.className.jsReplace(ClearCssClassRegExp, "")
-      try
+      try {
         parseExpr(text())
-      catch
+      } catch {
         case e: IllegalArgumentException =>
           parent.className += " has-error"
           Literal(Double.NaN)
+      }
+    }
+  }
+
+  def parseExpr(text: String): Expr = {
+    def parseSimple(text: String): Expr = {
+      if (text.forall(l => l >= 'a' && l <= 'z')) {
+        Ref(text)
+      } else {
+        try {
+          Literal(text.toDouble)
+        } catch {
+          case e: NumberFormatException =>
+            throw new IllegalArgumentException(s"$text is neither a variable name nor a number")
+        }
+      }
     }
 
-  def parseExpr(text: String): Expr =
-    def parseSimple(text: String): Expr =
-      if text.forall(l => l >= 'a' && l <= 'z') then
-        Ref(text)
-      else
-        try
-          Literal(text.toDouble)
-        catch
-          case e: NumberFormatException =>
-            throw IllegalArgumentException(s"$text is neither a variable name nor a number")
-
-    text.split(" ").map(_.trim).filter(_ != "") match
+    text.split(" ").map(_.trim).filter(_ != "") match {
       case Array(x) => parseSimple(x)
       case Array(aText, op, bText) =>
         val a = parseSimple(aText)
         val b = parseSimple(bText)
-        op match
+        op match {
           case "+" => Plus(a, b)
           case "-" => Minus(a, b)
           case "*" => Times(a, b)
           case "/" => Divide(a, b)
           case _ =>
-            throw IllegalArgumentException(s"$op is not a valid operator")
+            throw new IllegalArgumentException(s"$op is not a valid operator")
+        }
       case _ =>
-        throw IllegalArgumentException(s"$text is not a valid simple expression")
+        throw new IllegalArgumentException(s"$text is not a valid simple expression")
+    }
+  }
+}

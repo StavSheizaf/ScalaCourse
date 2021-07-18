@@ -1,13 +1,9 @@
 course := "progfun2"
 assignment := "calculator"
 
-scalaVersion := "3.0.0"
-
+scalaVersion := "2.13.5"
 scalacOptions ++= Seq("-language:implicitConversions", "-deprecation")
-
-libraryDependencies ++= Seq(
-    "org.scalameta" %% "munit" % "0.7.26" % Test,
-    "org.scalacheck" %% "scalacheck" % "1.15.4"
-)
+libraryDependencies += "org.scalameta" %% "munit" % "0.7.22" % Test
+libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.0"
 
 testFrameworks += new TestFramework("munit.Framework")

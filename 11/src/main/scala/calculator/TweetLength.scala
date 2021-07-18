@@ -1,13 +1,21 @@
 package calculator
 
-object TweetLength extends TweetLengthInterface:
+object TweetLength extends TweetLengthInterface {
   final val MaxTweetLength = 140
 
-  def tweetRemainingCharsCount(tweetText: Signal[String]): Signal[Int] =
-    ???
+  def tweetRemainingCharsCount(tweetText: Signal[String]): Signal[Int] = {
+    Signal(MaxTweetLength - tweetLength(tweetText()))
+  }
 
-  def colorForRemainingCharsCount(remainingCharsCount: Signal[Int]): Signal[String] =
-    ???
+  def colorForRemainingCharsCount(remainingCharsCount: Signal[Int]): Signal[String] = {
+    val color = remainingCharsCount() match {
+      case x if 15 to MaxTweetLength contains x => "green"
+      case x if 0 to 14 contains x => "orange"
+      case x if (x < 0) => "red"
+    }
+
+    Signal(color)
+  }
 
   /** Computes the length of a tweet, given its text string.
    *  This is not equivalent to text.length, as tweet lengths count the number
@@ -16,11 +24,14 @@ object TweetLength extends TweetLengthInterface:
    *  can be found at
    *  https://dev.twitter.com/overview/api/counting-characters
    */
-  private def tweetLength(text: String): Int =
+  private def tweetLength(text: String): Int = {
     /* This should be simply text.codePointCount(0, text.length), but it
      * is not implemented in Scala.js 0.6.2.
      */
-    if text.isEmpty then 0
-    else
+    if (text.isEmpty) 0
+    else {
       text.length - text.init.zip(text.tail).count(
           (Character.isSurrogatePair _).tupled)
+    }
+  }
+}

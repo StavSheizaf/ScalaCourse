@@ -1,48 +1,61 @@
 package calculator
 
-trait Signal[+T]:
-  def apply()(using caller: Signal.Caller): T
-  def currentValue: T
+import scala.util.DynamicVariable
 
-object Signal:
-  abstract class AbstractSignal[+T] extends Signal[T]:
-    private var _currentValue: T = compiletime.uninitialized
-    private var observers: Set[Caller] = Set()
+class Signal[T](expr: => T) {
+  import Signal._
 
-    protected def eval: Caller => T
+  // scalafix:off
+  private var myExpr: () => T = _
+  private var myValue: T = _
+  private var observers: Set[Signal[_]] = Set()
+  private var observed: List[Signal[_]] = Nil
+  // scalafix:on
 
-    protected def computeValue(): Unit =
-      val newValue = eval(this)
-      val observeChange = observers.nonEmpty && newValue != _currentValue
-      _currentValue = newValue
-      if observeChange then
-        val obs = observers
-        observers = Set()
-        obs.foreach(_.computeValue())
+  update(expr)
 
-    def apply()(using caller: Caller): T =
-      observers += caller
-      assert(!caller.observers.contains(this), "cyclic signal definition")
-      _currentValue
+  protected def computeValue(): Unit = {
+    for (sig <- observed)
+      sig.observers -= this
+    observed = Nil
+    val newValue = caller.withValue(this)(myExpr())
+    /* Disable the following "optimization" for the assignment, because we
+     * want to be able to track the actual dependency graph in the tests.
+     */
+    //if (myValue != newValue) {
+      myValue = newValue
+      val obs = observers
+      observers = Set()
+      obs.foreach(_.computeValue())
+    //}
+  }
 
-    def currentValue: T = _currentValue
-  end AbstractSignal
-
-  def apply[T](expr: Caller ?=> T): Signal[T] =
-    new AbstractSignal[T]:
-      protected val eval = expr(using _)
-      computeValue()
-
-  @annotation.implicitNotFound("You can only observe a Signal value within a Signal definition like in `Signal{ ... }`. If you want to just read the current value, use the method `currentValue`.")
-  opaque type Caller = AbstractSignal[?]
-
-  class Var[T](expr: Signal.Caller ?=> T) extends Signal.AbstractSignal[T]:
-    protected var eval: Signal.Caller => T = expr(using _)
+  protected def update(expr: => T): Unit = {
+    myExpr = () => expr
     computeValue()
+  }
 
-    def update(expr: Signal.Caller ?=> T): Unit =
-      eval = expr(using _)
-      computeValue()
-  end Var
+  def apply() = {
+    observers += caller.value
+    assert(!caller.value.observers.contains(this), "cyclic signal definition")
+    caller.value.observed ::= this
+    myValue
+  }
+}
 
-end Signal
+class Var[T](expr: => T) extends Signal[T](expr) {
+  override def update(expr: => T): Unit = super.update(expr)
+}
+
+object Var {
+  def apply[T](expr: => T) = new Var(expr)
+}
+
+object NoSignal extends Signal[Nothing](???) {
+  override def computeValue() = ()
+}
+
+object Signal {
+  val caller = new DynamicVariable[Signal[_]](NoSignal)
+  def apply[T](expr: => T) = new Signal(expr)
+}
